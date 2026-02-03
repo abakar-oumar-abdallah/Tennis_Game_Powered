@@ -40,4 +40,8 @@ L'objet HealthCheck modélise l'état de santé de l'application.
 
 Pour le moment, ce contrôleur se contente simplement de retourner une réponse avec le statut OK et un message de bienvenue.
 
+Le contrôleur REST n'a plus besoin de s'occuper de la logique métier, il fait donc appel au service.
+
+Ici, nous mettons en œuvre le concept d'injection de dépendances avec l'annotation @Autowired. À l'exécution du code,
+une instance de HealthCheckService sera automatiquement injectée dans HealthCheckController.
  */

@@ -19,5 +19,16 @@ https://api.fakecompany.com/v1/users/1234
 // Réponse
 {"id":"1234", "name":"John Doe"}
 
+Un premier service : HealthCheck
+
+Pour notre premier service métier, nous avons mis en place un service permettant de donner l'état de santé de notre application.
+
+Nous avons donc modifié notre code pour que la logique métier, celle qui consiste à déterminer l'état de santé de notre application,
+se trouve au bon endroit, dans la couche métier et non dans la couche présentation.
+
+Ainsi la couche métier possèdera bien la logique et l'intelligence de cette fonctionnalité et la couche de présentation aura uniquement pour rôle d'afficher à l'utilisateur le résultat.
+
+
+
 
 
