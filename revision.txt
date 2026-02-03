@@ -1,0 +1,23 @@
+Introduction à REST :
+
+REST, c'est un style d'architecture, ce n'est pas un framework ou une technologie particulière, mais plutôt un ensemble de principes.
+
+Ce style d'architecture est notamment utilisé dans le développement de services web, on parle alors de services web RESTful ou d'API RESTful.
+
+Le principe de cette architecture est que chaque ressource, qui est le concept ou la donnée à laquelle on essaie d'accéder,
+doit être accessible et identifiable de manière unique via une URL spécifique.
+
+L'interaction avec une API REST, c'est-à-dire la manipulation des ressources, repose sur un protocole standardisé comme HTTP,
+ce protocole met à disposition différentes méthodes (on parle aussi de verbes) comme GET / POST / PUT / DELETE.
+
+Voici un exemple d'appel à une API RESTful qui permet de récupérer un utilisateur ayant pour identifiant 1234 :
+
+// Requête
+GET
+https://api.fakecompany.com/v1/users/1234
+
+// Réponse
+{"id":"1234", "name":"John Doe"}
+
+
+
