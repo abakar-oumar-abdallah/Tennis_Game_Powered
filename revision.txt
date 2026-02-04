@@ -19,7 +19,7 @@ https://api.fakecompany.com/v1/users/1234
 // Réponse
 {"id":"1234", "name":"John Doe"}
 
-Un premier service : HealthCheck
+Un premier service : HealthCheck :
 
 Pour notre premier service métier, nous avons mis en place un service permettant de donner l'état de santé de notre application.
 
@@ -27,6 +27,16 @@ Nous avons donc modifié notre code pour que la logique métier, celle qui consi
 se trouve au bon endroit, dans la couche métier et non dans la couche présentation.
 
 Ainsi la couche métier possèdera bien la logique et l'intelligence de cette fonctionnalité et la couche de présentation aura uniquement pour rôle d'afficher à l'utilisateur le résultat.
+
+La couche de persistance :
+
+Nous arrivons à la troisième et dernière couche de notre application, celle qui va gérer l'accès aux données de notre application.
+
+On trouve dans cette couche toute la gestion de la persistance des données, dans la plupart des applications, on utilise une base de données,
+mais la couche de persistance peut tout aussi bien interagir avec d'autres systèmes.
+
+
+
 
 
 
