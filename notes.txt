@@ -1,0 +1,57 @@
+Introduction à REST :
+
+REST, c'est un style d'architecture, ce n'est pas un framework ou une technologie particulière, mais plutôt un ensemble de principes.
+
+Ce style d'architecture est notamment utilisé dans le développement de services web, on parle alors de services web RESTful ou d'API RESTful.
+
+Le principe de cette architecture est que chaque ressource, qui est le concept ou la donnée à laquelle on essaie d'accéder,
+doit être accessible et identifiable de manière unique via une URL spécifique.
+
+L'interaction avec une API REST, c'est-à-dire la manipulation des ressources, repose sur un protocole standardisé comme HTTP,
+ce protocole met à disposition différentes méthodes (on parle aussi de verbes) comme GET / POST / PUT / DELETE.
+
+Voici un exemple d'appel à une API RESTful qui permet de récupérer un utilisateur ayant pour identifiant 1234 :
+
+// Requête
+GET
+https://api.fakecompany.com/v1/users/1234
+
+// Réponse
+{"id":"1234", "name":"John Doe"}
+
+Un premier service : HealthCheck :
+
+Pour notre premier service métier, nous avons mis en place un service permettant de donner l'état de santé de notre application.
+
+Nous avons donc modifié notre code pour que la logique métier, celle qui consiste à déterminer l'état de santé de notre application,
+se trouve au bon endroit, dans la couche métier et non dans la couche présentation.
+
+Ainsi la couche métier possèdera bien la logique et l'intelligence de cette fonctionnalité et la couche de présentation aura uniquement pour rôle d'afficher à l'utilisateur le résultat.
+
+La couche de persistance :
+
+Nous arrivons à la troisième et dernière couche de notre application, celle qui va gérer l'accès aux données de notre application.
+
+On trouve dans cette couche toute la gestion de la persistance des données, dans la plupart des applications, on utilise une base de données,
+mais la couche de persistance peut tout aussi bien interagir avec d'autres systèmes.
+
+Notre couche de persistance va s'appuyer sur une base de données relationnelle, nous allons donc compléter notre environnement
+de développement en mettant en place une base de données PostgreSQL. Pour se simplifier la vie et s'affranchir de toute problématique, nous allons utiliser Docker.
+
+Pour permettre à notre application de se connecter à cette base de données, il faut ajouter de la configuration en modifiant le fichier application.properties avec ce contenu :
+
+spring.datasource.url=jdbc:postgresql://localhost:5432/postgres
+spring.datasource.username=postgres
+spring.datasource.password=postgres
+spring.jpa.open-in-view=false
+
+
+
+
+
+
+
+
+
+
+

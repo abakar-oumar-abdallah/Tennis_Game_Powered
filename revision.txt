@@ -1,55 +1,444 @@
-Introduction à REST :
+📚 FICHE DE RÉVISION - ARCHITECTURE BACKEND SPRING BOOT
+🎯 Vue d'ensemble
+Une application Spring Boot suit une architecture en 3 couches pour séparer les responsabilités :
+┌─────────────────────────────────────┐
+│   COUCHE PRÉSENTATION (REST)        │  ← Communication avec l'extérieur
+│   @RestController                    │
+└──────────────┬──────────────────────┘
+               │
+               ↓
+┌─────────────────────────────────────┐
+│   COUCHE SERVICE (MÉTIER)            │  ← Logique et règles métier
+│   @Service                           │
+└──────────────┬──────────────────────┘
+               │
+               ↓
+┌─────────────────────────────────────┐
+│   COUCHE PERSISTANCE (DATA)          │  ← Accès aux données
+│   @Repository                        │
+└──────────────┬──────────────────────┘
+               │
+               ↓
+         [BASE DE DONNÉES]
 
-REST, c'est un style d'architecture, ce n'est pas un framework ou une technologie particulière, mais plutôt un ensemble de principes.
+🌐 1. REST API - Concepts fondamentaux
+Qu'est-ce que REST ?
+REST (Representational State Transfer) est un style d'architecture, pas un framework :
 
-Ce style d'architecture est notamment utilisé dans le développement de services web, on parle alors de services web RESTful ou d'API RESTful.
+Chaque ressource est identifiable par une URL unique
+Utilise les méthodes HTTP standard : GET, POST, PUT, DELETE
+Communication via protocole HTTP
 
-Le principe de cette architecture est que chaque ressource, qui est le concept ou la donnée à laquelle on essaie d'accéder,
-doit être accessible et identifiable de manière unique via une URL spécifique.
-
-L'interaction avec une API REST, c'est-à-dire la manipulation des ressources, repose sur un protocole standardisé comme HTTP,
-ce protocole met à disposition différentes méthodes (on parle aussi de verbes) comme GET / POST / PUT / DELETE.
-
-Voici un exemple d'appel à une API RESTful qui permet de récupérer un utilisateur ayant pour identifiant 1234 :
-
+Exemple d'appel REST
 // Requête
-GET
-https://api.fakecompany.com/v1/users/1234
+GET https://api.fakecompany.com/v1/users/1234
 
 // Réponse
 {"id":"1234", "name":"John Doe"}
+Les méthodes HTTP (verbes)
+MéthodeUsageExempleGETRécupérer une ressourceGET /users/123POSTCréer une nouvelle ressourcePOST /usersPUTModifier une ressource complètePUT /users/123DELETESupprimer une ressourceDELETE /users/123PATCHModifier partiellementPATCH /users/123
 
-Un premier service : HealthCheck :
+🏗️ 2. COUCHE PRÉSENTATION - @RestController
+Rôle
 
-Pour notre premier service métier, nous avons mis en place un service permettant de donner l'état de santé de notre application.
+Point d'entrée de l'application
+Reçoit les requêtes HTTP
+Appelle la couche service
+Retourne les réponses au format JSON
 
-Nous avons donc modifié notre code pour que la logique métier, celle qui consiste à déterminer l'état de santé de notre application,
-se trouve au bon endroit, dans la couche métier et non dans la couche présentation.
+Annotations principales
+java@RestController  // Déclare la classe comme contrôleur REST
+public class HealthCheckController {
 
-Ainsi la couche métier possèdera bien la logique et l'intelligence de cette fonctionnalité et la couche de présentation aura uniquement pour rôle d'afficher à l'utilisateur le résultat.
+    @Autowired  // Injection de dépendance automatique
+    private HealthCheckService healthCheckService;
 
-La couche de persistance :
+    @GetMapping("/healthcheck")  // Mappe GET /healthcheck
+    public HealthCheck healthcheck() {
+        return healthCheckService.healthcheck();
+    }
+}
+Annotations de mapping
+java@GetMapping("/path")      // HTTP GET
+@PostMapping("/path")     // HTTP POST
+@PutMapping("/path")      // HTTP PUT
+@DeleteMapping("/path")   // HTTP DELETE
+@RequestMapping("/path")  // Générique (tous les verbes)
+⚠️ Important
+Le contrôleur NE DOIT PAS contenir de logique métier, il délègue au service !
 
-Nous arrivons à la troisième et dernière couche de notre application, celle qui va gérer l'accès aux données de notre application.
+🎯 3. COUCHE SERVICE - @Service
+Rôle
 
-On trouve dans cette couche toute la gestion de la persistance des données, dans la plupart des applications, on utilise une base de données,
-mais la couche de persistance peut tout aussi bien interagir avec d'autres systèmes.
+Contient toute la logique métier
+Applique les règles et processus
+Orchestre les appels aux repositories
+Effectue les calculs et validations
 
-Notre couche de persistance va s'appuyer sur une base de données relationnelle, nous allons donc compléter notre environnement
-de développement en mettant en place une base de données PostgreSQL. Pour se simplifier la vie et s'affranchir de toute problématique, nous allons utiliser Docker.
+Structure type
+java@Service  // Indique que c'est une classe de logique métier
+public class HealthCheckService {
 
-Pour permettre à notre application de se connecter à cette base de données, il faut ajouter de la configuration en modifiant le fichier application.properties avec ce contenu :
+    @Autowired  // Injection du repository
+    private HealthCheckRepository healthCheckRepository;
 
+    public HealthCheck healthcheck() {
+        // LOGIQUE MÉTIER ICI
+        Long connections = healthCheckRepository.countApplicationConnections();
+
+        if (connections > 0) {
+            return new HealthCheck(ApplicationStatus.OK, "Application OK");
+        } else {
+            return new HealthCheck(ApplicationStatus.KO, "Erreur de connexion");
+        }
+    }
+}
+📌 Principe clé
+La logique métier est définie par les experts métier et retranscrite en code par les développeurs.
+
+💾 4. COUCHE PERSISTANCE - @Repository
+Rôle
+
+Gère l'accès aux données
+Communique avec la base de données
+Exécute les requêtes SQL ou utilise JPA
+Abstrait la complexité de la persistance
+
+Structure type
+java@Repository  // Indique que cette classe accède aux données
+public class HealthCheckRepository {
+
+    @Autowired
+    private EntityManager entityManager;  // Gestionnaire d'entités JPA
+
+    public Long countApplicationConnections() {
+        String query = "SELECT count(*) FROM pg_stat_activity " +
+                      "WHERE application_name = 'PostgreSQL JDBC Driver'";
+        return (Long) entityManager.createNativeQuery(query).getSingleResult();
+    }
+}
+Types de requêtes
+1. Requête native (SQL pur)
+javaentityManager.createNativeQuery("SELECT * FROM users WHERE id = ?")
+2. JPQL (Java Persistence Query Language)
+javaentityManager.createQuery("SELECT u FROM User u WHERE u.id = :id")
+
+🔧 5. CONFIGURATION - application.properties
+Configuration de la base de données PostgreSQL
+properties# URL de connexion à PostgreSQL
 spring.datasource.url=jdbc:postgresql://localhost:5432/postgres
+
+# Identifiants
 spring.datasource.username=postgres
 spring.datasource.password=postgres
+
+# Désactive l'Open Session In View (bonne pratique)
 spring.jpa.open-in-view=false
+Paramètres importants
+PropriétéDescriptionspring.datasource.urlURL de connexion JDBCspring.datasource.usernameNom d'utilisateur DBspring.datasource.passwordMot de passe DBspring.jpa.open-in-viewGestion des sessions Hibernate (false = mieux)
+
+💉 6. INJECTION DE DÉPENDANCES
+Concept
+Spring gère automatiquement la création et l'injection des objets (beans).
+Avec @Autowired
+java@RestController
+public class UserController {
+
+    @Autowired  // Spring injecte automatiquement UserService
+    private UserService userService;
+
+    // userService est prêt à être utilisé !
+}
+Comment ça marche ?
+
+Spring scanne les classes avec @Component, @Service, @Repository, @RestController
+Il crée des instances (beans) de ces classes
+Il les injecte automatiquement là où c'est nécessaire avec @Autowired
+
+Les annotations de composants
+java@Component      // Composant générique Spring
+@Service        // Composant de logique métier
+@Repository     // Composant d'accès aux données
+@RestController // Composant contrôleur REST
+
+🗂️ 7. ORGANISATION DES PACKAGES
+Structure recommandée
+src/main/java/com/dyma/tennis/
+│
+├── TennisApplication.java          // Point d'entrée (@SpringBootApplication)
+│
+├── rest/                            // COUCHE PRÉSENTATION
+│   └── HealthCheckController.java
+│
+├── service/                         // COUCHE SERVICE
+│   └── HealthCheckService.java
+│
+├── repository/                      // COUCHE PERSISTANCE
+│   └── HealthCheckRepository.java
+│
+└── model/                           // OBJETS MÉTIER
+    ├── HealthCheck.java
+    └── ApplicationStatus.java
+
+🐘 8. BASE DE DONNÉES POSTGRESQL AVEC DOCKER
+Fichier docker-compose (postgresql.yml)
+yamlservices:
+  dyma-postgresql:
+    image: postgres:15
+    container_name: dyma-postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - dyma-postgres-data:/var/lib/postgresql/data
+
+volumes:
+  dyma-postgres-data:
+Commandes Docker
+bash# Démarrer PostgreSQL
+docker-compose -f src/main/docker/postgresql.yml up -d
+
+# Arrêter PostgreSQL
+docker-compose -f src/main/docker/postgresql.yml down
+
+# Voir les logs
+docker logs dyma-postgres
+
+🚀 9. DÉMARRER L'APPLICATION
+Avec Maven Wrapper
+bash# Linux/Mac
+./mvnw spring-boot:run
+
+# Windows
+mvnw.cmd spring-boot:run
+Vérifier que ça fonctionne
+bash# Test de l'API
+curl http://localhost:8080/healthcheck
+
+# Réponse attendue
+{
+  "status": "OK",
+  "message": "Welcome to Koukaye Tennis"
+}
+
+📋 10. MODÈLES DE DONNÉES (DTOs/Entities)
+Record (Java 14+)
+javapublic record HealthCheck(ApplicationStatus status, String message) {
+    // Constructeur, getters, equals, hashCode, toString générés automatiquement
+}
+Enum
+javapublic enum ApplicationStatus {
+    OK,    // Application fonctionnelle
+    KO;    // Application en erreur
+}
+Classe Entity (pour JPA)
+java@Entity
+@Table(name = "players")
+public class Player {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false)
+    private String name;
+
+    // Getters et setters
+}
+
+🎓 11. ANNOTATIONS ESSENTIELLES - RÉCAPITULATIF
+Annotations de composants
+AnnotationUsage@SpringBootApplicationPoint d'entrée de l'app@RestControllerContrôleur REST@ServiceLogique métier@RepositoryAccès aux données@ComponentComposant Spring générique
+Annotations de mapping
+AnnotationUsage@GetMappingMappe requête HTTP GET@PostMappingMappe requête HTTP POST@PutMappingMappe requête HTTP PUT@DeleteMappingMappe requête HTTP DELETE
+Annotations de dépendances
+AnnotationUsage@AutowiredInjection de dépendance
+Annotations JPA/Database
+AnnotationUsage@EntityClasse mappée en table DB@TableNom de la table@IdClé primaire@GeneratedValueGénération auto de l'ID@ColumnMapping de colonne
+
+⚡ 12. DÉPANNAGE - ERREURS COURANTES
+❌ Erreur : "password authentication failed"
+Cause : Mauvais identifiants PostgreSQL
+Solution :
+properties# Vérifier application.properties
+spring.datasource.username=postgres
+spring.datasource.password=postgres
+❌ Erreur : "Unable to determine Dialect"
+Cause : PostgreSQL n'est pas démarré ou mauvaise URL
+Solutions :
+
+Vérifier que Docker PostgreSQL tourne : docker ps
+Démarrer PostgreSQL : docker-compose -f src/main/docker/postgresql.yml up -d
+Vérifier l'URL dans application.properties
+
+❌ Erreur : Port 8080 déjà utilisé
+Solution :
+properties# Changer le port dans application.properties
+server.port=8081
+
+📊 13. FLUX COMPLET D'UNE REQUÊTE
+┌─────────────┐
+│   CLIENT    │  GET /healthcheck
+│  (Browser)  │
+└──────┬──────┘
+       │
+       ↓
+┌──────────────────────────────────┐
+│  @RestController                 │
+│  HealthCheckController           │
+│  - Reçoit la requête HTTP        │
+│  - Appelle le service            │
+└──────┬───────────────────────────┘
+       │
+       ↓
+┌──────────────────────────────────┐
+│  @Service                        │
+│  HealthCheckService              │
+│  - Applique la logique métier    │
+│  - Appelle le repository         │
+└──────┬───────────────────────────┘
+       │
+       ↓
+┌──────────────────────────────────┐
+│  @Repository                     │
+│  HealthCheckRepository           │
+│  - Exécute la requête SQL        │
+│  - Retourne les données          │
+└──────┬───────────────────────────┘
+       │
+       ↓
+┌──────────────────────────────────┐
+│  PostgreSQL Database             │
+│  - Exécute la requête            │
+│  - Retourne le résultat          │
+└──────┬───────────────────────────┘
+       │
+       ↓
+    [Remonte dans l'ordre inverse]
+       │
+       ↓
+┌──────────────────────────────────┐
+│  CLIENT                          │
+│  Reçoit la réponse JSON :        │
+│  {                               │
+│    "status": "OK",               │
+│    "message": "Welcome..."       │
+│  }                               │
+└──────────────────────────────────┘
+
+🎯 14. BONNES PRATIQUES
+✅ À FAIRE
+
+Respecter la séparation en couches : ne pas mélanger les responsabilités
+Controller → appelle le service, ne contient PAS de logique
+Service → contient toute la logique métier
+Repository → interagit UNIQUEMENT avec la base de données
+Utiliser @Autowired pour l'injection de dépendances
+Nommer clairement les packages : rest, service, repository
+Utiliser des DTOs/Records pour les transferts de données
+
+❌ À ÉVITER
+
+Mettre de la logique métier dans le contrôleur
+Faire des requêtes SQL directement dans le service
+Mélanger les responsabilités des couches
+Oublier les annotations (@Service, @Repository, etc.)
+Hardcoder les configurations (utiliser application.properties)
 
 
+📝 15. CHECKLIST DE DÉVELOPPEMENT
+Pour créer un nouveau endpoint REST :
+
+ Créer l'entité/modèle dans model/
+ Créer le repository dans repository/ avec @Repository
+ Créer le service dans service/ avec @Service
+ Créer le contrôleur dans rest/ avec @RestController
+ Ajouter les annotations de mapping (@GetMapping, etc.)
+ Injecter les dépendances avec @Autowired
+ Tester avec curl ou Postman
+ Vérifier les logs
 
 
+🔍 16. EXEMPLE COMPLET - CRUD PLAYER
+1. Entité Player
+java@Entity
+@Table(name = "players")
+public class Player {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String name;
+    private int ranking;
+
+    // Getters et setters
+}
+2. Repository
+java@Repository
+public interface PlayerRepository extends JpaRepository<Player, Long> {
+    // Méthodes CRUD automatiques : save, findById, findAll, delete, etc.
+    List<Player> findByRankingLessThan(int ranking);
+}
+3. Service
+java@Service
+public class PlayerService {
+
+    @Autowired
+    private PlayerRepository playerRepository;
+
+    public List<Player> getAllPlayers() {
+        return playerRepository.findAll();
+    }
+
+    public Player createPlayer(Player player) {
+        return playerRepository.save(player);
+    }
+
+    public Optional<Player> getPlayerById(Long id) {
+        return playerRepository.findById(id);
+    }
+}
+4. Controller
+java@RestController
+@RequestMapping("/api/players")
+public class PlayerController {
+
+    @Autowired
+    private PlayerService playerService;
+
+    @GetMapping
+    public List<Player> getAllPlayers() {
+        return playerService.getAllPlayers();
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Player> getPlayer(@PathVariable Long id) {
+        return playerService.getPlayerById(id)
+            .map(ResponseEntity::ok)
+            .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PostMapping
+    public Player createPlayer(@RequestBody Player player) {
+        return playerService.createPlayer(player);
+    }
+}
+
+🎓 POINTS CLÉS À RETENIR
+
+Architecture en 3 couches : REST → Service → Repository
+Chaque couche a UN rôle précis : présentation, logique, données
+Spring gère l'injection des dépendances automatiquement
+REST = style d'architecture utilisant HTTP
+PostgreSQL via Docker pour la persistance
+application.properties centralise la configuration
+Annotations clés : @RestController, @Service, @Repository, @Autowired
 
 
+📚 RESSOURCES SUPPLÉMENTAIRES
 
-
-
+Documentation officielle Spring Boot : https://spring.io/projects/spring-boot
+Guide Spring Data JPA : https://spring.io/guides/gs/accessing-data-jpa/
+REST API Best Practices : https://restfulapi.net/
+PostgreSQL Documentation : https://www.postgresql.org/docs/
