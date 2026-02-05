@@ -35,6 +35,17 @@ Nous arrivons à la troisième et dernière couche de notre application, celle q
 On trouve dans cette couche toute la gestion de la persistance des données, dans la plupart des applications, on utilise une base de données,
 mais la couche de persistance peut tout aussi bien interagir avec d'autres systèmes.
 
+Notre couche de persistance va s'appuyer sur une base de données relationnelle, nous allons donc compléter notre environnement
+de développement en mettant en place une base de données PostgreSQL. Pour se simplifier la vie et s'affranchir de toute problématique, nous allons utiliser Docker.
+
+Pour permettre à notre application de se connecter à cette base de données, il faut ajouter de la configuration en modifiant le fichier application.properties avec ce contenu :
+
+spring.datasource.url=jdbc:postgresql://localhost:5432/postgres
+spring.datasource.username=postgres
+spring.datasource.password=postgres
+spring.jpa.open-in-view=false
+
+
 
 
 
